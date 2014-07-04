@@ -8,7 +8,7 @@ describe('ui', function () {
   describe('show progression screen', function () {
 
     it('shows the selected screen', function () {
-      show_progression_screen('progression_end');
+      ui.show_progression_screen('progression_end');
 
       expect($('#progression_start').is(':visible')).toEqual(false);
       expect($('#progression_loading').is(':visible')).toEqual(false);
@@ -48,7 +48,7 @@ describe('ui', function () {
 
   it('shows the progression player when the server responds to the progression request', function () {
     json = '';
-    load_progression(json);
+    ui.load_progression(json);
 
     expect($('#progression_player').is(':visible')).toEqual(true);
   });

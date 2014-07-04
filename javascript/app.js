@@ -1,30 +1,4 @@
-//dependency inject objects vs avail on top level (for page and tests)
-//unify initialization in tests to single call (same call as app will use)
-//  perhaps also for those to set certain states in state machine
-
-
-// object model
-
-//   transport
-//     .current_clip_state
-//     clip_sequence
-//       .current_clip -- is the currently selected media, independent of the player as that is coordinated by the transport
-//     player
-//       .current_clip -- returns the jplayer.status.media
-
-
-// app lifecycle
-//   page loaded
-//     libraries load, document ready
-//       clip_sequence loaded
-//       transport initialize called passing it the loaded clip sequence (its not really job of transport to load the clip_sequence)
-//         this also calles load() on the state machine as verifiection of success of ^
-//
-
-
-
 var player = {
-
   initialize: function () {
     $('#jquery_jplayer_1').jPlayer({
       swfPath: '/img',
@@ -67,19 +41,16 @@ var player = {
     $('.jp-title').find('li').text(clip.title);
 
     $('#jquery_jplayer_1').bind($.jPlayer.event.ended, function (){
-      // execute the end of clip callback method against the object
-//      eval(player.current_clip().end_of_clip_callbacks);
-console.log(clip);
-//debugger
+
+    // execute the end of clip callback method against the object
+      //      eval(player.current_clip().end_of_clip_callbacks);
       window[clip.end_of_clip_callbacks]();
       //player[player.current_clip().end_of_clip_callbacks]();
     });
   }
-
 };
 
 var clip_sequence = {
-
   initialize: function () {
     this.data = null;
     this.current_clip = null;
@@ -116,7 +87,6 @@ var clip_sequence = {
     var target_clip_sequence_order_id = 1;
     this.set_current_clip_by_clip_sequence_order_id(target_clip_sequence_order_id);
   }
-
 }
 
 var transport = {
@@ -209,13 +179,30 @@ var transport = {
       }
     });
   }
-
 }
 
-
-// soon we probably want to wrap the functions below into a ui object
 var ui = {
+  show_progression_screen: function (screen_id) {
+    var screens = ['progression_start', 'progression_loading', 'progression_player', 'progression_end'];
+    var screens_to_hide = _.without(screens, screen_id);
+    _.each(screens_to_hide, function (screen_to_hide) { $('#' + screen_to_hide).hide() });
 
+    $('#' + screen_id).show();
+  },
+
+  submit_progression_start: function () {
+    this.show_progression_screen('progression_loading');
+
+    server_io.progressions__start();
+  },
+
+  failed_ajax: function () {
+    console.log('ajax failed error');
+  },
+
+  load_progression: function () {
+    this.show_progression_screen('progression_player');
+  }
 }
 
 var server_io = {
@@ -224,38 +211,12 @@ var server_io = {
       type: "POST",
       url: 'api/progressions/start',
       data: '',
-      success: load_progression(),
+      success: ui.load_progression(),
       error: console.log('ajax error'),
       dataType: 'json'
     });
   }
 
-}
-
-var load_progression = function (json) {
-  show_progression_screen('progression_player');
-}
-
-var show_progression_screen = function (screen_id) {
-  var screens = ['progression_start', 'progression_loading', 'progression_player', 'progression_end'];
-  var screens_to_hide = _.without(screens, screen_id);
-  _.each(screens_to_hide, function (screen_to_hide) { $('#' + screen_to_hide).hide() });
-
-  $('#' + screen_id).show();
-}
-
-var submit_progression_start = function () {
-  show_progression_screen('progression_loading');
-
-  server_io.progressions__start();
-}
-
-var failed_ajax = function () {
-  console.log('ajax failed error');
-}
-
-var load_progression = function () {
-  show_progression_screen('progression_player');
 }
 
 var initialize_app =  function () {
@@ -270,7 +231,6 @@ var initialize_app =  function () {
 }
 
 var simulateServerLoad = function (type) {
-
   var clip_sequence_data_short = [
     {
       title: 'Audio 1',
@@ -321,7 +281,6 @@ var simulateServerLoad = function (type) {
 
   transport.load();
 }
-
 
 $(document).ready(function () {
   initialize_app();
